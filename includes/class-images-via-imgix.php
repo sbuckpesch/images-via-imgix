@@ -125,6 +125,7 @@ class Images_Via_Imgix {
 	public function image_downsize( $return, $attachment_id, $size ) {
 		if ( ! empty ( $this->options['cdn_link'] ) ) {
 			$img_url = wp_get_attachment_url( $attachment_id );
+			$height = $width = false;
 
 			$params = [];
 			if ( is_array( $size ) ) {
@@ -136,18 +137,24 @@ class Images_Via_Imgix {
 					$size        = $available_sizes[ $size ];
 					$params['w'] = $width = $size['width'];
 					$params['h'] = $height = $size['height'];
-				}
+				} else if ( isset( $available_sizes[ 'large' ] ) ) {
+                    $size        = $available_sizes[  'large' ];
+                    $params['w'] = $width = $size['width'];
+                    $params['h'] = $height = $size['height'];
+                }
 			}
 
 			$params = array_filter( $params );
-
 			$img_url = add_query_arg( $params, $img_url );
 
 			if ( ! isset( $width ) || ! isset( $height ) ) {
 				// any other type: use the real image
 				$meta   = wp_get_attachment_metadata( $attachment_id );
-				$width  = isset( $width ) ? $width : $meta['width'];
-				$height = isset( $height ) ? $height : $meta['height'];
+				$meta_width = isset( $meta['width'] ) ? $meta['width'] : false;
+				$meta_height = isset( $meta['height'] ) ? $meta['height'] : false;
+				
+				$width  = isset( $width ) ? $width : $meta_width;
+                $height = isset( $height ) ? $height : $meta_height;
 			}
 
 			$return = [ $img_url, $width, $height, true ];
